@@ -1,26 +1,31 @@
 import arcpy
 import os
 
-# Set the project and map variables
-project_path = r"C:\path\to\your\ArcGISProject.aprx"  # Update with the actual path to your ArcGIS Pro project
-output_folder = r"C:\path\to\output\folder"  # Update with the folder where you want to save the .lyrx files
+# Set the path to the folder where you want to save the .lyrx files
+output_folder = r"C:\Users\samir\OneDrive\Masaüstü\New folder (2)\Layer"
 
-# Load the ArcGIS Pro project
-aprx = arcpy.mp.ArcGISProject(project_path)
+# Get the current ArcGIS Pro project
+project = arcpy.mp.ArcGISProject("CURRENT")
 
-# Access the map (replace 'Map' with your map's actual name)
-map_name = 'Map'  # Change this to the name of your map in the project
-map_obj = aprx.listMaps(map_name)[0]
+# Get the active map
+active_map = project.activeMap
 
-# Loop through each layer in the map
-for layer in map_obj.listLayers():
-    if layer.isFeatureLayer or layer.isRasterLayer:  # Ensure it works for feature and raster layers
-        # Set the output path for the layer's .lyrx file
+# Make sure the output folder exists
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
+
+# Loop through each layer in the active map
+for layer in active_map.listLayers():
+    # Check if the layer can be exported (it should be a valid feature or raster layer)
+    if layer.isFeatureLayer or layer.isRasterLayer:
+        # Define the output path for the .lyrx file
         output_path = os.path.join(output_folder, f"{layer.name}.lyrx")
-        
-        # Export the layer symbology to a .lyrx file
-        layer.saveACopy(output_path)
-        print(f"Saved {layer.name} symbology to {output_path}")
 
-# Clean up
-del aprx
+        try:
+            # Export the layer's symbology as a .lyrx file
+            layer.saveACopy(output_path)
+            print(f"Exported {layer.name} to {output_path}")
+        except Exception as e:
+            print(f"Error exporting {layer.name}: {e}")
+
+print("Layer symbology exported successfully!")
